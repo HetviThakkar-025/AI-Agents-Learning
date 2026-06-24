@@ -2,32 +2,34 @@ from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnableSequence, RunnableParallel, RunnablePassthrough
+from langchain_core.runnables import RunnableSequence, RunnableParallel, RunnableLambda, RunnablePassthrough
 
 load_dotenv()
 model = ChatGroq(model="llama-3.1-8b-instant")
 
-# passthrough = RunnablePassthrough()
-# print(passthrough.invoke(2))
 
-prompt1 = PromptTemplate(
+def counter(text):
+    return len(text.split())
+
+# passthrough = RunnableLambda(counter)
+# print(passthrough.invoke("Hi helo"))
+
+
+prompt = PromptTemplate(
     template='Genearte joke about {topic}',
     input_variables=['topic']
 )
 
-prompt2 = PromptTemplate(
-    template='explain joke - {text}',
-    input_variables=['text']
-)
-
 parser = StrOutputParser()
 
-joke_gen_chain = RunnableSequence(prompt1, model, parser)
+joke_gen_chain = RunnableSequence(prompt, model, parser)
 
 parallel_chain = RunnableParallel({
     'joke': RunnablePassthrough(),
-    'expl': RunnableSequence(prompt2, model, parser)
+    'count': RunnableLambda(lambda x: len(x.split()))
 })
+
+chain = RunnableSequence(joke_gen_chain, parallel_chain)
 
 chain = RunnableSequence(joke_gen_chain, parallel_chain)
 
