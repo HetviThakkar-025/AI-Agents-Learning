@@ -1,5 +1,3 @@
-# pip install -U langchain langchain-openai langchain-community faiss-cpu pypdf python-dotenv
-
 import os
 from dotenv import load_dotenv
 from langchain_community.document_loaders import PyPDFLoader
@@ -10,7 +8,9 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableParallel, RunnablePassthrough, RunnableLambda
 from langchain_core.output_parsers import StrOutputParser
 
-load_dotenv()  # expects OPENAI_API_KEY in .env
+os.environ['LANGCHAIN_PROJECT'] = 'RAG app demo'
+
+load_dotenv()  # expects GOOGLE_API_KEY in .env
 
 PDF_PATH = "islr.pdf"  # <-- change to your PDF filename
 
@@ -22,7 +22,7 @@ docs = loader.load()  # one Document per page
 splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=150)
 splits = splitter.split_documents(docs)
 
-# 3) Embed + index
+# 3) Embed + index (text-embedding-004 is shut down; gemini-embedding-001 is the replacement)
 emb = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001")
 vs = FAISS.from_documents(splits, emb)
 retriever = vs.as_retriever(search_type="similarity", search_kwargs={"k": 4})
